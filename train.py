@@ -1,22 +1,22 @@
 import torch
 import torch.nn as nn
+import argparse
+import matplotlib.pyplot as plt
 from torch.optim import Adam
 from tqdm import tqdm
-from statistics import mean
-import argparse
-import numpy as np
 from model import load_model
 from dataset import get_dataloaders
 from settings import PLOT_PATH
-import matplotlib.pyplot as plt
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def train(net, optimizer, train_loader, validation_loader, epochs=10):
-    criterion = nn.CrossEntropyLoss(reduction='sum')
+    criterion = nn.CrossEntropyLoss(reduction="sum")
     train_loss = []
-    validation_loss =[]
-    train_accuracy =[]
+    validation_loss = []
+    train_accuracy = []
     validation_accuracy = []
     for epoch in tqdm(range(epochs)):
         running_loss = 0.0
@@ -30,7 +30,9 @@ def train(net, optimizer, train_loader, validation_loader, epochs=10):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            goods += (torch.argmax(outputs, dim=1) == torch.argmax(y, dim=1)).sum().item()
+            goods += (
+                (torch.argmax(outputs, dim=1) == torch.argmax(y, dim=1)).sum().item()
+            )
         train_loss.append(running_loss / len(train_loader.dataset))
         train_accuracy.append(goods / len(train_loader.dataset))
 
@@ -43,36 +45,39 @@ def train(net, optimizer, train_loader, validation_loader, epochs=10):
                 outputs = net(x)
             loss = criterion(outputs, y)
             running_loss += loss.item()
-            goods += (torch.argmax(outputs, dim=1) == torch.argmax(y, dim=1)).sum().item()
+            goods += (
+                (torch.argmax(outputs, dim=1) == torch.argmax(y, dim=1)).sum().item()
+            )
         validation_loss.append(running_loss / len(validation_loader.dataset))
         validation_accuracy.append(goods / len(validation_loader.dataset))
     return train_loss, validation_loss, train_accuracy, validation_accuracy
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--exp_name',
+        "--exp_name",
         type=str,
-        default = 'movie',
-        help='experiment name',
+        default="movie",
+        help="experiment name",
     )
     parser.add_argument(
-        '--batch_size',
+        "--batch_size",
         type=int,
-        default = 1,
-        help='batch size',
+        default=1,
+        help="batch size",
     )
     parser.add_argument(
-        '--lr',
+        "--lr",
         type=float,
-        default = 0.0001,
-        help='learning rate',
+        default=0.0001,
+        help="learning rate",
     )
     parser.add_argument(
-        '--epochs',
+        "--epochs",
         type=int,
-        default = 10,
-        help='Number of training epochs',
+        default=10,
+        help="Number of training epochs",
     )
     args = parser.parse_args()
     exp_name = args.exp_name
@@ -93,12 +98,14 @@ if __name__=='__main__':
     optimizer = Adam(net.parameters(), lr=lr)
 
     # launch training
-    train_loss, validation_loss, train_accuracy, validation_accuracy = train(net, optimizer, train_loader, validation_loader, epochs=epochs)
-    
-    # Saving the model
-    torch.save(net.state_dict(), 'weights/movie_net.pth')
+    train_loss, validation_loss, train_accuracy, validation_accuracy = train(
+        net, optimizer, train_loader, validation_loader, epochs=epochs
+    )
 
-    fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(10,5))
+    # Saving the model
+    torch.save(net.state_dict(), "weights/movie_net.pth")
+
+    fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(10, 5))
     ax1.plot(train_loss, label="train")
     ax1.plot(validation_loss, label="validation")
     ax1.set_xlabel("Epochs")

@@ -7,8 +7,12 @@ from settings import PLOT_PATH
 if __name__ == "__main__":
     data = Movie_Dataset("all")
     genres = data.genres
-    count = np.array([np.array(data[idx][1]) for idx in range(len(data))], dtype=int).sum(axis=0)
-    genre_count = pd.DataFrame({"count": count}, index=genres).sort_values(by="count", ascending=False)
+    count = np.array(
+        [np.array(data[idx][1]) for idx in range(len(data))], dtype=int
+    ).sum(axis=0)
+    genre_count = pd.DataFrame({"count": count}, index=genres).sort_values(
+        by="count", ascending=False
+    )
     fig = plt.figure()
     bar = plt.bar(range(len(genres)), genre_count["count"].tolist())
     plt.bar_label(bar, labels=genre_count["count"].tolist())
