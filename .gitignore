@@ -1,3 +1,5 @@
 MovieGenre/
 __pycache__/
 weights/
+cache/
+plots/
