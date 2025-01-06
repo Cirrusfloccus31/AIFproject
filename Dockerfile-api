@@ -6,7 +6,7 @@ COPY . /workspace
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN scripts/download_model.sh
+#RUN scripts/download_model.sh
 
 EXPOSE 5000
 

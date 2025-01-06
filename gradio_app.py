@@ -1,13 +1,14 @@
 import gradio as gr 
 import requests
-
-API_url = "http://localhost:5000/predict"
+from PIL import Image
+from io import BytesIO
 
 def predict_genre_via_api(image):
-    url = "http://model_api:5000/predict"  # Modifié pour docker-compose
-    files = {'file': image}
-    response = requests.post(url, files=files)
-    return response.json().get("predicted_genre", "Error in prediction")
+    url = "http://127.0.0.1:5000/predict"  # Modifié pour docker-compose
+    image_binary = BytesIO()
+    image.save(image_binary, format="JPEG")
+    response = requests.post(url, data=image_binary.getvalue())
+    return response.json().get("predicted_genre", response)
     
 
 
