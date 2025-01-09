@@ -1,4 +1,5 @@
 import torch
+import gdown
 from torchvision import transforms
 from flask import Flask, request, jsonify
 from model import load_model
@@ -18,9 +19,13 @@ preprocess = transforms.Compose(
 
 app = Flask('Movie_genre')
 
+#Download model weights
+share_url = "https://drive.google.com/file/d/1otYecurXLj7WqWjHjkE4wjOemNhKVDiU/view?usp=sharing"
+gdown.download(share_url, "movie_net.pth", fuzzy=True, quiet=True)
+
 # Charger le modèle
 model = load_model()
-model.load_state_dict(torch.load("weights/movie_net.pth", weights_only=True, map_location=torch.device('cpu')))
+model.load_state_dict(torch.load("movie_net.pth", weights_only=True, map_location=torch.device('cpu')))
 
 # Charger les genres à partir du dataset
 dataset = Movie_Dataset(split="all")
