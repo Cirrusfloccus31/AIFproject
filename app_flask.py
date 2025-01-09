@@ -3,7 +3,6 @@ import gdown
 from torchvision import transforms
 from flask import Flask, request, jsonify
 from model import load_model
-from dataset import Movie_Dataset
 from PIL import Image
 from io import BytesIO
 
@@ -28,8 +27,7 @@ model = load_model()
 model.load_state_dict(torch.load("movie_net.pth", weights_only=True, map_location=torch.device('cpu')))
 
 # Charger les genres à partir du dataset
-dataset = Movie_Dataset(split="all")
-genres = dataset.genres  # Liste des genres disponibles
+genres = ['action','animation','comedy','documentary','drama','fantasy','horror','romance','science Fiction','thriller']  # Liste des genres disponibles
 
 @app.route('/predict', methods=['POST'])
 def predict():
