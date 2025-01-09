@@ -7,46 +7,41 @@ import pandas as pd
 from tqdm.notebook import tqdm
 import numpy as np
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-from torchvision import datasets
+from dataset import ImageAndPathsDataset, transform_MLP_dataset
+from model import load_model_reco
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def extract_dataset_features(dataloader,model):
+    #Création d'un dataframe contenant les features extraites des images du dataset
+    features_list = []
+    paths_list = [] #paths vers les images 
+
+    for x, paths in tqdm(dataloader):
+        with torch.no_grad():
+            embeddings = model(x.to(device))
+            features_list.extend(embeddings.cpu().numpy())
+            paths_list.extend(paths)
+
+    df = pd.DataFrame({
+        'features': features_list,
+        'paths': paths_list
+    })
+
+    #Enregistrement du dataframe qui associe paths et features
+    df.to_csv('features_paths.csv', index=False)
+
+def extract_embedding(input_img, model):
+    #extraction des features de l'input
+    embedding = model(input_img.to(device))
+    return embedding.cpu().numpy()
 
 
+if __name__ == '__main__':
+    transform, normalize, inv_normalize = transform_MLP_dataset()
 
-class ImageAndPathsDataset(datasets.ImageFolder):
-    def __getitem__(self, index):
-        img, _= super(ImageAndPathsDataset, self).__getitem__(index)
-        path = self.imgs[index][0]
-        return img, path
+    dataset = ImageAndPathsDataset('MLP-20M', transform)
+    dataloader = DataLoader(dataset, batch_size=128, num_workers=2, shuffle=False)
 
-
-mean = [ 0.485, 0.456, 0.406 ]
-std = [ 0.229, 0.224, 0.225 ]
-normalize = transforms.Normalize(mean, std)
-inv_normalize = transforms.Normalize(
-   mean= [-m/s for m, s in zip(mean, std)],
-   std= [1/s for s in std]
-)
-
-transform = transforms.Compose([transforms.Resize((224, 224)),
-                                transforms.ToTensor(),
-                                normalize])
-
-dataset = ImageAndPathsDataset('MLP-20M', transform)
-dataloader = DataLoader(dataset, batch_size=128, num_workers=2, shuffle=False)
-
-    
-
-mobilenet = models.mobilenet_v3_small(pretrained=True)
-model = torch.nn.Sequential(mobilenet.features, mobilenet.avgpool, torch.nn.Flatten()).cuda()
-model = model.eval()
-
-
-features_list = []
-
-for x, _ in tqdm(dataloader):
-    with torch.no_grad():
-        embeddings = model(x.cuda())
-        features_list.extend(embeddings.cpu().numpy())
-        
-features = np.vstack(features_list)
-np.save("features.npy", features)
+    model_reco = load_model_reco()
+    extract_dataset_features(dataloader,model_reco)
