@@ -1,5 +1,5 @@
 torch
 torchvision
-gradio
 flask
 gdown
+annoy
