@@ -37,16 +37,16 @@ def reco_overview(input_overview):
 
     annoy_index = AnnoyIndex(size, 'angular')
     for i, embedding in enumerate(vect_overview_list):
-        annoy_index.add_item(metadata.at[i, 'title'], embedding)
+        annoy_index.add_item(i, embedding)
 
     annoy_index.build(10)
     annoy_index.save('data/rec_overview.ann')
 
-    nearest_neighbors, distances = annoy_index.get_nns_by_vector(query_vector, n=5, include_distances=True)
+    nearest_neighbors_idx, distances = annoy_index.get_nns_by_vector(query_vector, n=5, include_distances=True)
 
     # Afficher les résultats
-    for title, distance in zip(nearest_neighbors, distances):
-        print(f"Title: {title}, Distance: {distance}")
+    for idx, distance in zip(nearest_neighbors_idx, distances):
+        print(f"Title: {metadata.at[idx, 'title']}, Distance: {distance}")
 
 if __name__ == "__main__":
     reco_overview("Led by Woody, Andy's toys live happily in his room until Andy's birthday brings Buzz Lightyear onto the scene. Afraid of losing his place in Andy's heart, Woody plots against Buzz. But when circumstances separate Buzz and Woody from their owner, the duo eventually learns to put aside their differences.")
