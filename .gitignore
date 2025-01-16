@@ -1,4 +1,5 @@
 MovieGenre/
+*.jpg
 __pycache__/
 weights/
 cache/
