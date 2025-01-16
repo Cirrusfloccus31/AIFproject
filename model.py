@@ -18,8 +18,9 @@ def load_model():
     return model
 
 def load_model_reco():
-    mobilenet = mobilenet_v3_small(pretrained=True)
+    mobilenet = mobilenet_v3_small(weights="MobileNet_V3_Small_Weights.IMAGENET1K_V1")
     #On récupère les features de mobilenet
     model_reco = torch.nn.Sequential(mobilenet.features, mobilenet.avgpool, torch.nn.Flatten())
     model_reco = model_reco.eval() #permet d'enlever le dropout
+    print("load mobilenet")
     return model_reco

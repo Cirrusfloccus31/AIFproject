@@ -16,7 +16,6 @@ def extract_dataset_features(dataloader,model):
     #Création d'un dataframe contenant les features extraites des images du dataset
     features_list = []
     paths_list = [] #paths vers les images 
-
     for x, paths in tqdm(dataloader):
         with torch.no_grad():
             embeddings = model(x.to(device))
@@ -34,7 +33,7 @@ def extract_dataset_features(dataloader,model):
 def extract_embedding(input_img, model):
     #extraction des features de l'input
     embedding = model(input_img.to(device))
-    return embedding.cpu().numpy()
+    return embedding
 
 
 if __name__ == '__main__':
