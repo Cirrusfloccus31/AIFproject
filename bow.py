@@ -33,7 +33,11 @@ def reco_overview(input_overview):
 
     metadata.to_csv('data/movies_metadata_bow.csv', index=False)
 
+    id_to_title = dict(enumerate(metadata['title']))
+
     query_vector = metadata[metadata["title"]=="__input_title__"]["vect_overview"].tolist()[0]
+
+    vect_overview_list = metadata[metadata["title"]!="__input_title__"]['vect_overview'] #Removing the input from the embeddings
 
     annoy_index = AnnoyIndex(size, 'angular')
     for i, embedding in enumerate(vect_overview_list):
@@ -41,8 +45,6 @@ def reco_overview(input_overview):
 
     annoy_index.build(10)
     annoy_index.save('data/rec_overview.ann')
-
-    id_to_title = dict(enumerate(metadata['title']))
 
     nearest_neighbors_indices, distances = annoy_index.get_nns_by_vector(query_vector, n=5, include_distances=True)
 
@@ -52,3 +54,6 @@ def reco_overview(input_overview):
     # Afficher les résultats
     for title, distance in nearest_neighbors_titles:
         print(f"Title: {title}, Distance: {distance}")
+
+if __name__ == "__main__":
+    reco_overview("Led by Woody, Andy's toys live happily in his room until Andy's birthday brings Buzz Lightyear onto the scene. Afraid of losing his place in Andy's heart, Woody plots against Buzz. But when circumstances separate Buzz and Woody from their owner, the duo eventually learns to put aside their differences.")
