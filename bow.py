@@ -4,15 +4,7 @@ from annoy import AnnoyIndex
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 def reco_overview(input_overview):
-    input_metadata = pd.DataFrame(
-        {
-            "id": [0],
-            "title": ["__input_title__"],
-            "overview": [input_overview]
-        }
-    )
-
-    size = 400
+    size = 1000
 
     vectorizer = TfidfVectorizer(stop_words='english', max_features=size)
 
@@ -21,7 +13,6 @@ def reco_overview(input_overview):
     metadata['id'] = pd.to_numeric(metadata['id'])
     metadata['overview'] = metadata['overview'].fillna('')
     metadata = metadata[['id', 'title', 'overview']]
-    metadata = pd.concat([metadata, input_metadata], ignore_index=True)
 
     vect_overview = vectorizer.fit_transform(metadata['overview'])
 
@@ -31,9 +22,7 @@ def reco_overview(input_overview):
 
     metadata = metadata[['id', 'title', 'overview', 'vect_overview']]
 
-    query_vector = metadata[metadata["title"]=="__input_title__"]["vect_overview"].tolist()[0]
-
-    vect_overview_list = metadata[metadata["title"]!="__input_title__"]['vect_overview'].tolist() #Removing the input from the embeddings
+    query_vector = vectorizer.transform([input_overview]).toarray().tolist()[0]
 
     annoy_index = AnnoyIndex(size, 'angular')
     for i, embedding in enumerate(vect_overview_list):
