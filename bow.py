@@ -29,7 +29,11 @@ def reco_overview(input_overview):
 
     metadata['vect_overview'] = vect_overview_list
 
-    metadata = metadata[['id', 'title', 'vect_overview']]
+    metadata = metadata[['id', 'title', 'overview', 'vect_overview']]
+
+    metadata['test'] = metadata['vect_overview'] == vectorizer.transform(metadata['overview'])
+
+    print(metadata[metadata['test'] is False])
 
     metadata.to_csv('data/movies_metadata_bow.csv', index=False)
 
