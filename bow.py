@@ -31,32 +31,21 @@ def reco_overview(input_overview):
 
     metadata = metadata[['id', 'title', 'overview', 'vect_overview']]
 
-    metadata['test'] = metadata['vect_overview'] == vectorizer.transform(metadata['overview'])
-
-    print(metadata[metadata['test'] is False])
-
-    metadata.to_csv('data/movies_metadata_bow.csv', index=False)
-
-    id_to_title = dict(enumerate(metadata['title']))
-
     query_vector = metadata[metadata["title"]=="__input_title__"]["vect_overview"].tolist()[0]
 
-    vect_overview_list = metadata[metadata["title"]!="__input_title__"]['vect_overview'] #Removing the input from the embeddings
+    vect_overview_list = metadata[metadata["title"]!="__input_title__"]['vect_overview'].tolist() #Removing the input from the embeddings
 
     annoy_index = AnnoyIndex(size, 'angular')
     for i, embedding in enumerate(vect_overview_list):
-        annoy_index.add_item(i, embedding)
+        annoy_index.add_item(metadata.at[i, 'title'], embedding)
 
     annoy_index.build(10)
     annoy_index.save('data/rec_overview.ann')
 
-    nearest_neighbors_indices, distances = annoy_index.get_nns_by_vector(query_vector, n=5, include_distances=True)
-
-    # Récupérer les titres des films correspondants
-    nearest_neighbors_titles = [(id_to_title[idx], dist) for idx, dist in zip(nearest_neighbors_indices, distances)]
+    nearest_neighbors, distances = annoy_index.get_nns_by_vector(query_vector, n=5, include_distances=True)
 
     # Afficher les résultats
-    for title, distance in nearest_neighbors_titles:
+    for title, distance in zip(nearest_neighbors, distances):
         print(f"Title: {title}, Distance: {distance}")
 
 if __name__ == "__main__":
