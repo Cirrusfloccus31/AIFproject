@@ -20,9 +20,11 @@ COPY download_data.sh /workspace/download_data.sh
 
 RUN ./download_data.sh
 
-COPY . /workspace
+COPY preprocessing.sh bow.py glove.py /workspace/
 
 RUN ./preprocessing.sh
+
+COPY . /workspace
 
 EXPOSE 5000
 

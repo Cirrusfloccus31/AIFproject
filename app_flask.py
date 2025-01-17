@@ -84,12 +84,13 @@ def predict():
 @app.route("/reco_overview", methods=["POST"])
 def reco_overview():
     
-    new_overview = request.data
-    method = request.method
+    data = request.json
+    new_overview = data.get('plot')
+    method = data.get('method')
 
     try:
         if method == 'glove':
-            similar_movies = find_similar_movies_glove(new_overview, movies_metadata_glove, model, annoy_index_glove, embedding_dim_glove)
+            similar_movies = find_similar_movies_glove(new_overview, movies_metadata_glove, glove_model, annoy_index_glove, embedding_dim_glove)
         elif method == 'bow':
             similar_movies = find_similar_movies_bow(new_overview, movies_metadata_bow, vectorizer, annoy_index_bow)
         else:
