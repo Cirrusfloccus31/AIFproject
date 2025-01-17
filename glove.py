@@ -4,13 +4,22 @@ import re
 from annoy import AnnoyIndex
 from gensim.models import KeyedVectors
 
-# Prétraiter le texte
-def preprocess_text(text):
-    text = text.lower()  # Convertir en minuscule
-    text = re.sub(r'[^\w\s]', '', text)  # Supprimer la ponctuation
-    return text.split()  # Tokeniser
+def load_glove_model(glove_file_path):
+    return KeyedVectors.load_word2vec_format(glove_file_path, binary=False, no_header=True)
 
-# Calculer l'embedding moyen pour un texte
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text)  # Supprimer la ponctuation
+    return text.split()
+
+def load_and_process_df():
+    df = pd.read_csv('data/movies_metadata.csv')
+    df['overview'] = df['overview'].fillna('')
+    df['embedding'] = df['overview'].apply(lambda x: get_average_embedding(x, glove_model, embedding_dim))
+    df = df[['title', 'embedding']]
+    df.to_csv('data/movies_metadata_glove.csv')
+    return df
+
 def get_average_embedding(text, model, embedding_dim=300):
     words = preprocess_text(text)
     valid_embeddings = [model[word] for word in words if word in model]
@@ -19,42 +28,21 @@ def get_average_embedding(text, model, embedding_dim=300):
     return np.mean(valid_embeddings, axis=0)
 
 def build_annoy_index(df, embedding_dim, num_trees=10):
-    index = AnnoyIndex(embedding_dim, 'angular')  # Utilisation de la distance angulaire (proche de la cosinus)
+    index = AnnoyIndex(embedding_dim, 'angular')
     for i, embedding in enumerate(df['embedding']):
-        index.add_item(i, embedding)  # Ajouter chaque vecteur avec son index
-    index.build(num_trees)  # Construire l'index avec le nombre d'arbres spécifié
-    return index
+        index.add_item(i, embedding)
+    index.build(num_trees)
+    index.save('data/rec_overview_glove.ann')
 
-def find_similar_movies(new_overview, df, model, annoy_index, embedding_dim, top_n=5):
-    # Calculer l'embedding pour le nouvel overview
+def find_similar_movies_glove(new_overview, df, model, annoy_index, embedding_dim, top_n=5):
     new_embedding = get_average_embedding(new_overview, model, embedding_dim)
-    
-    # Trouver les indices des films les plus proches
-    similar_indices = annoy_index.get_nns_by_vector(new_embedding, top_n, include_distances=True)
-    
-    # Récupérer les titres et scores des films correspondants
-    similar_movies = [(df.iloc[i]['title'], 1 - dist) for i, dist in zip(similar_indices[0], similar_indices[1])]
-    return pd.DataFrame(similar_movies, columns=['title', 'similarity'])
+    similar_indices = annoy_index.get_nns_by_vector(new_embedding, top_n)
+    similar_movies = ", ".join(df.iloc[i]['title'] for i in similar_indices)
+    return similar_movies
 
-# Chemin vers le fichier GloVe
-glove_file_path = 'data/glove.6B.100d.txt'
-embedding_dim = 100
-
-# Charger les embeddings avec Gensim
-glove_model = KeyedVectors.load_word2vec_format(glove_file_path, binary=False, no_header=True)
-
-df = pd.read_csv('data/movies_metadata.csv')
-
-df['overview'] = df['overview'].fillna('')
-
-# Calculer les embeddings pour chaque overview
-df['embedding'] = df['overview'].apply(lambda x: get_average_embedding(x, glove_model, embedding_dim))
-
-# Construire l'index Annoy
-annoy_index = build_annoy_index(df, embedding_dim)
-
-# Recherche des films les plus similaires
-new_overview = df.at[0, 'overview']
-most_similar_movies = find_similar_movies(new_overview, df, glove_model, annoy_index, embedding_dim, top_n=5)
-
-print(most_similar_movies)
+if __name__ == "__main__":
+    glove_file_path = 'data/glove.6B.100d.txt'
+    embedding_dim = 100
+    glove_model = load_glove_model(glove_file_path)
+    df = load_and_process_df()
+    annoy_index = build_annoy_index(df, embedding_dim)

@@ -1,41 +1,45 @@
+import pickle
 import pandas as pd
-import numpy as np
 from annoy import AnnoyIndex
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-def reco_overview(input_overview):
-    size = 1000
 
-    vectorizer = TfidfVectorizer(stop_words='english', max_features=size)
+def load_and_preprocess_df():
+    df = pd.read_csv('data/movies_metadata.csv')
+    df.dropna(subset=['title'], inplace=True)
+    df['id'] = pd.to_numeric(df['id'])
+    df['overview'] = df['overview'].fillna('')
+    df = df[['title', 'overview']]
+    return df
 
-    metadata = pd.read_csv('data/movies_metadata.csv')
-    metadata.dropna(subset=['title'], inplace=True)
-    metadata['id'] = pd.to_numeric(metadata['id'])
-    metadata['overview'] = metadata['overview'].fillna('')
-    metadata = metadata[['id', 'title', 'overview']]
-
-    vect_overview = vectorizer.fit_transform(metadata['overview'])
-
+def build_vectorizer(df, embedding_dim):
+    vectorizer = TfidfVectorizer(stop_words='english', max_features=embedding_dim)
+    vect_overview = vectorizer.fit_transform(df['overview'])
+    with open('data/tfidf_vectorizer.pkl', 'wb') as f:
+        pickle.dump(vectorizer, f)
     vect_overview_list = vect_overview.toarray().tolist()
+    df['vect_overview'] = vect_overview_list
+    df.to_csv('data/movies_metadata_bow.csv')
+    return vect_overview_list
 
-    metadata['vect_overview'] = vect_overview_list
-
-    metadata = metadata[['id', 'title', 'overview', 'vect_overview']]
-
-    query_vector = vectorizer.transform([input_overview]).toarray().tolist()[0]
-
-    annoy_index = AnnoyIndex(size, 'angular')
+def build_annoy_index(vect_overview_list, embedding_dim):
+    annoy_index = AnnoyIndex(embedding_dim, 'angular')
     for i, embedding in enumerate(vect_overview_list):
         annoy_index.add_item(i, embedding)
 
     annoy_index.build(10)
-    annoy_index.save('data/rec_overview.ann')
+    annoy_index.save('data/rec_overview_bow.ann')
 
-    nearest_neighbors_idx, distances = annoy_index.get_nns_by_vector(query_vector, n=5, include_distances=True)
-
-    # Afficher les résultats
-    for idx, distance in zip(nearest_neighbors_idx, distances):
-        print(f"Title: {metadata.at[idx, 'title']}, Distance: {distance}")
+def find_similar_movies_bow(new_overview, df, vectorizer, annoy_index, top_n=5):
+    
+    new_embedding = vectorizer.transform([new_overview]).toarray().tolist()[0]
+    similar_indices = annoy_index.get_nns_by_vector(new_embedding, top_n)
+    
+    similar_movies = ", ".join(df.iloc[i]['title'] for i in similar_indices)
+    return similar_movies
 
 if __name__ == "__main__":
-    reco_overview("Led by Woody, Andy's toys live happily in his room until Andy's birthday brings Buzz Lightyear onto the scene. Afraid of losing his place in Andy's heart, Woody plots against Buzz. But when circumstances separate Buzz and Woody from their owner, the duo eventually learns to put aside their differences.")
+    embedding_dim = 1000
+    df = load_and_preprocess_df()
+    vect_overview_list = build_vectorizer(df, embedding_dim)
+    build_annoy_index(vect_overview_list, embedding_dim)

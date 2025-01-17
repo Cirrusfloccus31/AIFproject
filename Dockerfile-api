@@ -3,6 +3,8 @@ FROM python:3.9-slim
 WORKDIR /workspace
 
 RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
     gcc \
     g++ \
     make \
@@ -14,7 +16,13 @@ COPY requirements_api.txt /workspace/requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY download_data.sh /workspace/download_data.sh
+
+RUN ./download_data.sh
+
 COPY . /workspace
+
+RUN ./preprocessing.sh
 
 EXPOSE 5000
 

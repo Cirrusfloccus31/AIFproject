@@ -1,5 +1,7 @@
 torch
 torchvision
 flask
-gdown
 annoy
+pandas
+gensim
+scikit-learn
