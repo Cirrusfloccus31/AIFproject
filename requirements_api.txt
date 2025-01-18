@@ -5,3 +5,4 @@ annoy
 pandas
 gensim
 scikit-learn
+nltk

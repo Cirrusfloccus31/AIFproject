@@ -1,14 +1,21 @@
 import pickle
 import pandas as pd
+import re
 from annoy import AnnoyIndex
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(r'\d+', '', text)
+    text = re.sub(r'[^\w\s]', '', text)  # Supprimer la ponctuation
+    return text
 
 def load_and_preprocess_df():
     df = pd.read_csv('data/movies_metadata.csv')
     df.dropna(subset=['title'], inplace=True)
     df['id'] = pd.to_numeric(df['id'])
     df['overview'] = df['overview'].fillna('')
+    df['overview'] = df['overview'].apply(preprocess_text)
     df = df[['title', 'overview']]
     return df
 

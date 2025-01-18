@@ -42,9 +42,9 @@ genres = [
 ]  # Liste des genres disponibles
 
 # Load model, data and annoy index for glove
-glove_file_path = 'data/glove.6B.100d.txt'
+glove_file_path = 'data/glove.6B.300d.txt'
 glove_model = load_glove_model(glove_file_path)
-embedding_dim_glove = 100
+embedding_dim_glove = 300
 annoy_index_glove = AnnoyIndex(embedding_dim_glove, 'angular')
 annoy_index_glove.load('data/rec_overview_glove.ann')
 movies_metadata_glove = pd.read_csv('data/movies_metadata_glove.csv')

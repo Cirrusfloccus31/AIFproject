@@ -1,19 +1,29 @@
 import pandas as pd
 import numpy as np
 import re
+import nltk
+from nltk.corpus import stopwords
 from annoy import AnnoyIndex
 from gensim.models import KeyedVectors
+
+# Télécharger les stop words
+nltk.download('stopwords')
+stop_words = set(stopwords.words('english'))
 
 def load_glove_model(glove_file_path):
     return KeyedVectors.load_word2vec_format(glove_file_path, binary=False, no_header=True)
 
 def preprocess_text(text):
     text = text.lower()
+    text = re.sub(r'\d+', '', text)
     text = re.sub(r'[^\w\s]', '', text)  # Supprimer la ponctuation
-    return text.split()
+    words = text.split()  # Tokenisation
+    words = [word for word in words if word not in stop_words]  # Supprimer les stop words
+    return words
 
 def load_and_process_df():
     df = pd.read_csv('data/movies_metadata.csv')
+    df.dropna(subset=['title'], inplace=True)
     df['overview'] = df['overview'].fillna('')
     df['embedding'] = df['overview'].apply(lambda x: get_average_embedding(x, glove_model, embedding_dim))
     df = df[['title', 'embedding']]
@@ -41,8 +51,8 @@ def find_similar_movies_glove(new_overview, df, model, annoy_index, embedding_di
     return similar_movies
 
 if __name__ == "__main__":
-    glove_file_path = 'data/glove.6B.100d.txt'
-    embedding_dim = 100
+    glove_file_path = 'data/glove.6B.300d.txt'
+    embedding_dim = 300
     glove_model = load_glove_model(glove_file_path)
     df = load_and_process_df()
     annoy_index = build_annoy_index(df, embedding_dim)
