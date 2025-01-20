@@ -2,9 +2,10 @@ import gradio as gr
 import requests
 from io import BytesIO
 
+api_url = "http://api:5000"
 
 def predict_genre_via_api(image):
-    url = "http://model_api:5000/predict"  # Modifié pour docker-compose
+    url = f"{api_url}/predict"
     image_binary = BytesIO()
     image.save(image_binary, format="JPEG")
     response = requests.post(url, data=image_binary.getvalue())
@@ -12,7 +13,7 @@ def predict_genre_via_api(image):
 
 
 def predict_reco_plot_via_api(plot, method):
-    url = "http://model_api:5000/reco_overview"  # Modifié pour docker-compose
+    url = f"{api_url}/reco_overview"
     method = "bow" if method == "Bag of words" else "glove"
     print(method)
     data = {"plot": plot, "method": method}

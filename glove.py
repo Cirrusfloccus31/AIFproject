@@ -85,6 +85,7 @@ def find_similar_movies_glove(
 
 if __name__ == "__main__":
     glove_model = load_glove_model(GLOVE_FILE_PATH)
+    # Deletion of unused glove files
     delete_other_glove_files(GLOVE_FILE_PATH, EMBEDDING_DIM_GLOVE)
     df = load_and_process_df()
     annoy_index = build_annoy_index(df, EMBEDDING_DIM_GLOVE)

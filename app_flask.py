@@ -3,10 +3,10 @@ import pickle
 import pandas as pd
 from torchvision import transforms
 from flask import Flask, request, jsonify
-from model import load_model
 from PIL import Image
 from io import BytesIO
 from annoy import AnnoyIndex
+from model import load_model
 from glove import load_glove_model, find_similar_movies_glove
 from bow import find_similar_movies_bow
 from settings import (
