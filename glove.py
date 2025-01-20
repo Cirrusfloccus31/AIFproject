@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import re
+import os
 import nltk
 from nltk.corpus import stopwords
 from annoy import AnnoyIndex
@@ -10,6 +11,7 @@ from settings import (
     GLOVE_FILE_PATH,
     MOVIES_METADATA_GLOVE_PATH,
     ANNOY_GLOVE_PATH,
+    EMBEDDING_DIM_GLOVE,
 )
 
 # Télécharger les stop words
@@ -21,6 +23,14 @@ def load_glove_model(glove_file_path):
     return KeyedVectors.load_word2vec_format(
         glove_file_path, binary=False, no_header=True
     )
+
+
+def delete_other_glove_files(glove_file_path, embedding_dim_glove):
+    dim_list = [50, 100, 200, 300]
+    glove_files_directory = os.path.dirname(glove_file_path)
+    for dim in dim_list:
+        if dim != embedding_dim_glove:
+            os.remove(f"{glove_files_directory}/glove.6B.{dim}d.txt")
 
 
 def preprocess_text(text):
@@ -39,14 +49,14 @@ def load_and_process_df():
     df.dropna(subset=["title"], inplace=True)
     df["overview"] = df["overview"].fillna("")
     df["embedding"] = df["overview"].apply(
-        lambda x: get_average_embedding(x, glove_model, embedding_dim)
+        lambda x: get_average_embedding(x, glove_model, EMBEDDING_DIM_GLOVE)
     )
     df = df[["title", "embedding"]]
     df.to_csv(MOVIES_METADATA_GLOVE_PATH)
     return df
 
 
-def get_average_embedding(text, model, embedding_dim=300):
+def get_average_embedding(text, model, embedding_dim):
     words = preprocess_text(text)
     valid_embeddings = [model[word] for word in words if word in model]
     if not valid_embeddings:
@@ -74,7 +84,7 @@ def find_similar_movies_glove(
 
 
 if __name__ == "__main__":
-    embedding_dim = 300
     glove_model = load_glove_model(GLOVE_FILE_PATH)
+    delete_other_glove_files(GLOVE_FILE_PATH, EMBEDDING_DIM_GLOVE)
     df = load_and_process_df()
-    annoy_index = build_annoy_index(df, embedding_dim)
+    annoy_index = build_annoy_index(df, EMBEDDING_DIM_GLOVE)

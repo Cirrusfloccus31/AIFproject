@@ -8,6 +8,7 @@ from settings import (
     TFIDF_VECTORIZER_PATH,
     MOVIES_METADATA_BOW_PATH,
     ANNOY_BOW_PATH,
+    EMBEDDING_DIM_BOW,
 )
 
 
@@ -58,7 +59,6 @@ def find_similar_movies_bow(new_overview, df, vectorizer, annoy_index, top_n=5):
 
 
 if __name__ == "__main__":
-    embedding_dim = 1000
     df = load_and_preprocess_df()
-    vect_overview_list = build_vectorizer(df, embedding_dim)
-    build_annoy_index(vect_overview_list, embedding_dim)
+    vect_overview_list = build_vectorizer(df, EMBEDDING_DIM_BOW)
+    build_annoy_index(vect_overview_list, EMBEDDING_DIM_BOW)

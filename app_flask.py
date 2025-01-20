@@ -17,6 +17,8 @@ from settings import (
     GLOVE_FILE_PATH,
     MOVIES_METADATA_GLOVE_PATH,
     ANNOY_GLOVE_PATH,
+    EMBEDDING_DIM_GLOVE,
+    EMBEDDING_DIM_BOW,
 )
 
 # Les mêmes prétraitements que dans dataset
@@ -52,16 +54,14 @@ genres = [
 
 # Load model, data and annoy index for glove
 glove_model = load_glove_model(GLOVE_FILE_PATH)
-embedding_dim_glove = 300
-annoy_index_glove = AnnoyIndex(embedding_dim_glove, "angular")
+annoy_index_glove = AnnoyIndex(EMBEDDING_DIM_GLOVE, "angular")
 annoy_index_glove.load(ANNOY_GLOVE_PATH)
 movies_metadata_glove = pd.read_csv(MOVIES_METADATA_GLOVE_PATH)
 
 # Load model, data and annoy index for bow
-embedding_dim_bow = 1000
 with open(TFIDF_VECTORIZER_PATH, "rb") as f:
     vectorizer = pickle.load(f)
-annoy_index_bow = AnnoyIndex(embedding_dim_bow, "angular")
+annoy_index_bow = AnnoyIndex(EMBEDDING_DIM_BOW, "angular")
 annoy_index_bow.load(ANNOY_BOW_PATH)
 movies_metadata_bow = pd.read_csv(MOVIES_METADATA_BOW_PATH)
 
@@ -105,7 +105,7 @@ def reco_overview():
                 movies_metadata_glove,
                 glove_model,
                 annoy_index_glove,
-                embedding_dim_glove,
+                EMBEDDING_DIM_GLOVE,
             )
         elif method == "bow":
             similar_movies = find_similar_movies_bow(

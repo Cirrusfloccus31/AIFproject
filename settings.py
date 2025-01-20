@@ -1,9 +1,11 @@
 DATA_PATH = "data/"
 MOVIE_NET_PATH = DATA_PATH + "movie_net.pth"
+EMBEDDING_DIM_GLOVE = 100
+EMBEDDING_DIM_BOW = 100
 MOVIES_METADATA_PATH = DATA_PATH + "movies_metadata.csv"
 TFIDF_VECTORIZER_PATH = DATA_PATH + "tfidf_vectorizer.pkl"
 MOVIES_METADATA_BOW_PATH = DATA_PATH + "movies_metadata_bow.csv"
 ANNOY_BOW_PATH = DATA_PATH + "bow.ann"
-GLOVE_FILE_PATH = DATA_PATH + "glove.6B.300d.txt"
+GLOVE_FILE_PATH = DATA_PATH + f"glove.6B.{EMBEDDING_DIM_GLOVE}d.txt"
 MOVIES_METADATA_GLOVE_PATH = DATA_PATH + "movies_metadata_glove.csv"
 ANNOY_GLOVE_PATH = DATA_PATH + "glove.ann"

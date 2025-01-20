@@ -7,10 +7,10 @@ wget "https://drive.usercontent.google.com/download?id=1otYecurXLj7WqWjHjkE4wjOe
 wget --no-check-certificate "https://drive.google.com/uc?export=download&id=1GTm75uv6CeBOBfbGsq6-EQp0gyg8Fzfn" -O "data/movies_metadata.csv" > /dev/null 2>&1
 
 # Glove file
-wget https://nlp.stanford.edu/data/glove.6B.zip -O "data/glove.6B.zip" > /dev/null 2>&1
+wget "https://nlp.stanford.edu/data/glove.6B.zip" -O "data/glove.6B.zip" > /dev/null 2>&1
 cd data
 unzip glove.6B.zip > /dev/null 2>&1
-
+rm glove.6B.zip
 cd ..
 
 # Download the VGG16 weights into the cache dir
