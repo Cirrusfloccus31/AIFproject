@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
-from settings import DATA_PATH
+from part1.settings import DATA_PATH
 
 NUM_CLASSES = 10
 

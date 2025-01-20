@@ -2,9 +2,9 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
-from dataset import get_dataloaders
+from part1.dataset import get_dataloaders
 from model import load_model
-from settings import PLOT_PATH
+from part1.settings import PLOT_PATH
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

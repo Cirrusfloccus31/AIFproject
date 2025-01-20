@@ -20,7 +20,7 @@ COPY download_data.sh /workspace/download_data.sh
 
 RUN ./download_data.sh
 
-COPY preprocessing.sh bow.py glove.py /workspace/
+COPY preprocessing.sh settings.py bow.py glove.py /workspace/
 
 RUN ./preprocessing.sh
 

@@ -6,7 +6,7 @@ COPY requirements_gradio.txt /workspace/requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /workspace
+COPY gradio_app.py /workspace/gradio_app.py
 
 EXPOSE 7860
 

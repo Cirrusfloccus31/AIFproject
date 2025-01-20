@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from dataset import Movie_Dataset
-from settings import PLOT_PATH
+from part1.dataset import Movie_Dataset
+from part1.settings import PLOT_PATH
 
 if __name__ == "__main__":
     data = Movie_Dataset("all")

@@ -9,6 +9,15 @@ from io import BytesIO
 from annoy import AnnoyIndex
 from glove import load_glove_model, find_similar_movies_glove
 from bow import find_similar_movies_bow
+from settings import (
+    MOVIE_NET_PATH,
+    TFIDF_VECTORIZER_PATH,
+    MOVIES_METADATA_BOW_PATH,
+    ANNOY_BOW_PATH,
+    GLOVE_FILE_PATH,
+    MOVIES_METADATA_GLOVE_PATH,
+    ANNOY_GLOVE_PATH,
+)
 
 # Les mêmes prétraitements que dans dataset
 preprocess = transforms.Compose(
@@ -25,7 +34,7 @@ app = Flask("Movie_genre")
 # Charger le modèle
 model = load_model()
 model.load_state_dict(
-    torch.load("data/movie_net.pth", weights_only=True, map_location=torch.device("cpu"))
+    torch.load(MOVIE_NET_PATH, weights_only=True, map_location=torch.device("cpu"))
 )
 
 genres = [
@@ -42,20 +51,20 @@ genres = [
 ]  # Liste des genres disponibles
 
 # Load model, data and annoy index for glove
-glove_file_path = 'data/glove.6B.300d.txt'
-glove_model = load_glove_model(glove_file_path)
+glove_model = load_glove_model(GLOVE_FILE_PATH)
 embedding_dim_glove = 300
-annoy_index_glove = AnnoyIndex(embedding_dim_glove, 'angular')
-annoy_index_glove.load('data/rec_overview_glove.ann')
-movies_metadata_glove = pd.read_csv('data/movies_metadata_glove.csv')
+annoy_index_glove = AnnoyIndex(embedding_dim_glove, "angular")
+annoy_index_glove.load(ANNOY_GLOVE_PATH)
+movies_metadata_glove = pd.read_csv(MOVIES_METADATA_GLOVE_PATH)
 
 # Load model, data and annoy index for bow
 embedding_dim_bow = 1000
-with open('data/tfidf_vectorizer.pkl', 'rb') as f:
+with open(TFIDF_VECTORIZER_PATH, "rb") as f:
     vectorizer = pickle.load(f)
-annoy_index_bow = AnnoyIndex(embedding_dim_bow, 'angular')
-annoy_index_bow.load('data/rec_overview_bow.ann')
-movies_metadata_bow = pd.read_csv('data/movies_metadata_glove.csv')
+annoy_index_bow = AnnoyIndex(embedding_dim_bow, "angular")
+annoy_index_bow.load(ANNOY_BOW_PATH)
+movies_metadata_bow = pd.read_csv(MOVIES_METADATA_BOW_PATH)
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -81,18 +90,27 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/reco_overview", methods=["POST"])
 def reco_overview():
-    
+
     data = request.json
-    new_overview = data.get('plot')
-    method = data.get('method')
+    new_overview = data.get("plot")
+    method = data.get("method")
 
     try:
-        if method == 'glove':
-            similar_movies = find_similar_movies_glove(new_overview, movies_metadata_glove, glove_model, annoy_index_glove, embedding_dim_glove)
-        elif method == 'bow':
-            similar_movies = find_similar_movies_bow(new_overview, movies_metadata_bow, vectorizer, annoy_index_bow)
+        if method == "glove":
+            similar_movies = find_similar_movies_glove(
+                new_overview,
+                movies_metadata_glove,
+                glove_model,
+                annoy_index_glove,
+                embedding_dim_glove,
+            )
+        elif method == "bow":
+            similar_movies = find_similar_movies_bow(
+                new_overview, movies_metadata_bow, vectorizer, annoy_index_bow
+            )
         else:
             raise NotImplementedError(f"method must be 'glove' or 'bow' not {method}")
 
