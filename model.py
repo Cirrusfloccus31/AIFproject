@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchvision.models import vgg16
+from torchvision.models import vgg16, mobilenet_v3_small
 import torch.hub
 
 # Set the cache directory for model weights
@@ -17,3 +17,11 @@ def load_model():
         nn.Linear(in_features=4096, out_features=10), nn.Softmax(dim=-1)
     )
     return model
+
+def load_model_reco():
+    mobilenet = mobilenet_v3_small(weights="MobileNet_V3_Small_Weights.IMAGENET1K_V1")
+    #On récupère les features de mobilenet
+    model_reco = torch.nn.Sequential(mobilenet.features, mobilenet.avgpool, torch.nn.Flatten())
+    model_reco = model_reco.eval() #permet d'enlever le dropout
+    print("load mobilenet")
+    return model_reco

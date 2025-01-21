@@ -1,14 +1,18 @@
 import torch
 import pickle
 import pandas as pd
+import base64
 from torchvision import transforms
 from flask import Flask, request, jsonify
 from PIL import Image
 from io import BytesIO
 from annoy import AnnoyIndex
-from model import load_model
+from model import load_model, load_model_reco
 from glove import load_glove_model, find_similar_movies_glove
 from bow import find_similar_movies_bow
+from extract_features import extract_embedding
+from recommendation import search
+from dataset import transform_MLP_dataset
 from settings import (
     MOVIE_NET_PATH,
     TFIDF_VECTORIZER_PATH,
@@ -30,7 +34,7 @@ preprocess = transforms.Compose(
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
-
+transform, normalize, inv_normalize = transform_MLP_dataset()
 app = Flask("Movie_genre")
 
 # Charger le modèle
@@ -38,7 +42,7 @@ model = load_model()
 model.load_state_dict(
     torch.load(MOVIE_NET_PATH, weights_only=True, map_location=torch.device("cpu"))
 )
-
+model_reco = load_model_reco()
 genres = [
     "action",
     "animation",
@@ -119,6 +123,34 @@ def reco_overview():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/predict_reco', methods=['POST'])
+def predict_reco():
+    image = request.data
+
+    try:
+        img_pil = Image.open(BytesIO(image))
+        tensor = transform(img_pil).unsqueeze(0)
+        # Appeler la prédiction
+        query_vector = extract_embedding(tensor, model_reco).detach().cpu().numpy()
+        print(query_vector.shape)
+        dim = 576 #taille des features 
+        annoy_index = AnnoyIndex(dim, 'angular')
+        annoy_index.load('rec_movies.ann')
+        df = pd.read_csv('features_paths.csv')
+        paths_list = df['paths'].tolist()
+        recos = search(query_vector[0], annoy_index, paths_list, k=5)
+        recos_imgs=[]
+        for i, path in enumerate(recos):
+            image=Image.open(path)
+            image_binary = BytesIO()
+            image.save(image_binary, format="JPEG")
+            image_binary.seek(0)
+            recos_imgs.append(base64.b64encode(image_binary.getvalue()).decode('utf-8'))
+        return jsonify(recos_imgs), 200
+    
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
