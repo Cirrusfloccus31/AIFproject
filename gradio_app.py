@@ -49,7 +49,7 @@ with gr.Blocks(title="AIF Project") as interface:
         gr.Interface(
             fn = predict_recos_via_api,
             inputs = gr.Image(type = 'pil'),
-            outputs = [gr.Image(type = 'pil') for i in range(5)],
+            outputs = [gr.Image() for i in range(5)],
             title = 'Movie recommendations predictor',
             description = 'Recommend the 5 movies most similar to ours' 
         )

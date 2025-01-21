@@ -135,8 +135,8 @@ def predict_reco():
         print(query_vector.shape)
         dim = 576 #taille des features 
         annoy_index = AnnoyIndex(dim, 'angular')
-        annoy_index.load('rec_movies.ann')
-        df = pd.read_csv('features_paths.csv')
+        annoy_index.load('data/rec_movies.ann')
+        df = pd.read_csv('data/features_paths.csv')
         paths_list = df['paths'].tolist()
         recos = search(query_vector[0], annoy_index, paths_list, k=5)
         recos_imgs=[]
