@@ -18,7 +18,7 @@ def predict_recos_via_api(image):
     image_binary = BytesIO()
     image.save(image_binary, format="JPEG")
     response = requests.post(url, data=image_binary.getvalue())
-    response_json = response.json()
+    response_json = response.json().get("images", [])
     images = [Image.open(BytesIO(base64.b64decode(img))) for img in response_json]
     return images[0], images[1], images[2], images[3], images[4]
 

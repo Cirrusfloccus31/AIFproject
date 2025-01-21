@@ -140,13 +140,13 @@ def predict_reco():
         paths_list = df['paths'].tolist()
         recos = search(query_vector[0], annoy_index, paths_list, k=5)
         recos_imgs=[]
+        print(recos)
         for i, path in enumerate(recos):
             image=Image.open(path)
             image_binary = BytesIO()
             image.save(image_binary, format="JPEG")
-            image_binary.seek(0)
             recos_imgs.append(base64.b64encode(image_binary.getvalue()).decode('utf-8'))
-        return jsonify(recos_imgs), 200
+        return jsonify({"images": recos_imgs}), 200
     
 
     except Exception as e:
