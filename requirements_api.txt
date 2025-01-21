@@ -1,0 +1,8 @@
+torch
+torchvision
+flask
+annoy
+pandas
+gensim
+scikit-learn
+nltk

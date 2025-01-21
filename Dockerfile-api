@@ -2,9 +2,27 @@ FROM python:3.9-slim
 
 WORKDIR /workspace
 
-COPY requirements.txt /workspace/requirements.txt
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    gcc \
+    g++ \
+    make \
+    build-essential \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install -r requirements.txt
+COPY requirements_api.txt /workspace/requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY download_data.sh /workspace/download_data.sh
+
+RUN ./download_data.sh
+
+COPY preprocessing.sh settings.py bow.py glove.py /workspace/
+
+RUN ./preprocessing.sh
 
 COPY . /workspace
 

@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from torch.optim import Adam
 from tqdm import tqdm
 from model import load_model
-from dataset import get_dataloaders
-from settings import PLOT_PATH
+from part1.dataset import get_dataloaders
+from part1.settings import PLOT_PATH
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
