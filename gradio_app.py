@@ -1,6 +1,8 @@
 import gradio as gr
 import requests
 from io import BytesIO
+import base64
+from PIL import Image
 
 API_url = "http://localhost:5000/predict"
 
@@ -16,7 +18,9 @@ def predict_recos_via_api(image):
     image_binary = BytesIO()
     image.save(image_binary, format="JPEG")
     response = requests.post(url, data=image_binary.getvalue())
-    return response.json().get("recommended_movies", response)
+    response_json = response.json()
+    images = [Image.open(BytesIO(base64.b64decode(img))) for img in response_json]
+    return images[0], images[1], images[2], images[3], images[4]
 
 # Création de l'interface Gradio 
 
@@ -33,7 +37,7 @@ with gr.Blocks() as interface:
         gr.Interface(
             fn = predict_recos_via_api,
             inputs = gr.Image(type = 'pil'),
-            outputs = ["image" for i in range(5)],
+            outputs = [gr.Image(type = 'pil') for i in range(5)],
             title = 'Movie recommendations predictor',
             description = 'Recommend the 5 movies most similar to ours' 
         )
@@ -41,4 +45,4 @@ with gr.Blocks() as interface:
 # Lancer l'interface 
 
 if __name__ == "__main__":
-    Interface.launch(server_name="0.0.0.0", server_port=7860)
+    interface.launch(server_name="127.0.0.1", server_port=7860)

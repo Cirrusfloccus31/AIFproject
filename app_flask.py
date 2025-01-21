@@ -8,6 +8,7 @@ from annoy import AnnoyIndex
 import pandas as pd
 from PIL import Image
 from io import BytesIO
+import base64
 
 
 import torch
@@ -79,7 +80,6 @@ def predict():
             dim=1
         ).item()  # obtient l'index du genre avec la proba la plus haute
         predicted_genre = genres[predicted_index]
-        print("ok")
         return jsonify({"predicted_genre": predicted_genre}), 200
 
     except Exception as e:
@@ -104,8 +104,13 @@ def predict_reco():
         recos = search(query_vector[0], annoy_index, paths_list, k=5)
         recos_imgs=[]
         for i, path in enumerate(recos):
-            recos_imgs.append(Image.open(path))
-        return jsonify({'recommended_movies': recos_imgs}), 200
+            image=Image.open(path)
+            image_binary = BytesIO()
+            image.save(image_binary, format="JPEG")
+            image_binary.seek(0)
+            recos_imgs.append(base64.b64encode(image_binary.getvalue()).decode('utf-8'))
+        return jsonify(recos_imgs), 200
+    
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

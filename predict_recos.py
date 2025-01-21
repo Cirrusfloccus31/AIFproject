@@ -50,4 +50,5 @@ image = Image.open('MLP-20M/MLP-20M/1.jpg')
 tensor = transform(image).unsqueeze(0)
 result = predict_reco(tensor)
 plot_images(result)
+plt.show()
 
