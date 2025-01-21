@@ -6,3 +6,4 @@ pandas
 gensim
 scikit-learn
 nltk
+kaggle
