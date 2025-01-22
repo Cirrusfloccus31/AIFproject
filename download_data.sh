@@ -28,9 +28,9 @@ wget "$WEIGHTS_URL" -O "$CACHE_DIR/mobilenet_v3_small-047dcff4.pth" > /dev/null 
 # Download annoy file part 2
 wget --no-check-certificate "https://drive.google.com/uc?export=download&id=1xEbpdGCzWlJjv1SGtiTjz0puOF-8J34c" -O "data/rec_movies.ann" > /dev/null 2>&1
 
-# Download csv file part 2
-wget "https://drive.usercontent.google.com/download?id=1wMcYiJhrKGAAcKlwrWNbaCTtSoDttXjQ&export=download&confirm=t&uuid=c77b8f52-1f41-4e99-bb80-e8bd6ff44fc9" -O "data/features_paths.csv" > /dev/null 2>&1
+# Dowload csv file (paths) part 2
+wget --no-check-certificate "https://drive.google.com/uc?export=download&id=1aAKC9_YW0no7k2pQ-tRm4lefxp4ejdog" -O "data/image_paths.csv" > /dev/null 2>&1
 
 # Download dataset MLP-20M
-kaggle datasets download "ghrzarea/movielens-20m-posters-for-machine-learning"
-unzip movielens-20m-posters-for-machine-learning.zip
+kaggle datasets download "ghrzarea/movielens-20m-posters-for-machine-learning" > /dev/null 2>&1
+unzip movielens-20m-posters-for-machine-learning.zip > /dev/null 2>&1

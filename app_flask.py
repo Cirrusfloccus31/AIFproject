@@ -4,7 +4,7 @@ import pandas as pd
 import base64
 from torchvision import transforms
 from flask import Flask, request, jsonify
-from PIL import Image
+from PIL import Image, ImageChops
 from io import BytesIO
 from annoy import AnnoyIndex
 from model import load_model, load_model_reco
@@ -23,6 +23,10 @@ from settings import (
     ANNOY_GLOVE_PATH,
     EMBEDDING_DIM_GLOVE,
     EMBEDDING_DIM_BOW,
+    EMBEDDING_DIM_POSTER,
+    ANNOY_POSTER_PATH,
+    IMAGE_CSV_FILE_PATH,
+    NUMBER_RECO_POSTER,
 )
 
 # Les mêmes prétraitements que dans dataset
@@ -35,14 +39,23 @@ preprocess = transforms.Compose(
     ]
 )
 transform, normalize, inv_normalize = transform_MLP_dataset()
-app = Flask("Movie_genre")
+app = Flask("AIF_Project")
 
-# Charger le modèle
+# Load model : genre prediction
 model = load_model()
 model.load_state_dict(
     torch.load(MOVIE_NET_PATH, weights_only=True, map_location=torch.device("cpu"))
 )
+
+# Load model : Recommendation
 model_reco = load_model_reco()
+
+# Load data and annoy index for poster recommendation
+annoy_index_poster = AnnoyIndex(EMBEDDING_DIM_POSTER, "angular")
+annoy_index_poster.load(ANNOY_POSTER_PATH)
+df = pd.read_csv(IMAGE_CSV_FILE_PATH)
+paths_list = df["paths"].tolist()
+
 genres = [
     "action",
     "animation",
@@ -88,7 +101,6 @@ def predict():
             dim=1
         ).item()  # obtient l'index du genre avec la proba la plus haute
         predicted_genre = genres[predicted_index]
-        print("ok")
         return jsonify({"predicted_genre": predicted_genre}), 200
 
     except Exception as e:
@@ -123,7 +135,8 @@ def reco_overview():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/predict_reco', methods=['POST'])
+
+@app.route("/predict_reco", methods=["POST"])
 def predict_reco():
     image = request.data
 
@@ -132,25 +145,32 @@ def predict_reco():
         tensor = transform(img_pil).unsqueeze(0)
         # Appeler la prédiction
         query_vector = extract_embedding(tensor, model_reco).detach().cpu().numpy()
-        print(query_vector.shape)
-        dim = 576 #taille des features 
-        annoy_index = AnnoyIndex(dim, 'angular')
-        annoy_index.load('data/rec_movies.ann')
-        df = pd.read_csv('data/features_paths.csv')
-        paths_list = df['paths'].tolist()
-        recos = search(query_vector[0], annoy_index, paths_list, k=5)
-        recos_imgs=[]
-        print(recos)
+        recos = search(
+            query_vector[0], annoy_index_poster, paths_list, k=NUMBER_RECO_POSTER + 1
+        )
+        recos_imgs = []
         for i, path in enumerate(recos):
-            image=Image.open(path)
+            image = Image.open(path)
+            if images_are_equal(img_pil, image):
+                # On enlève l'image si elle est égale à l'image d'entrée (ne fonctionne pas très bien)
+                continue
             image_binary = BytesIO()
             image.save(image_binary, format="JPEG")
-            recos_imgs.append(base64.b64encode(image_binary.getvalue()).decode('utf-8'))
+            recos_imgs.append(base64.b64encode(image_binary.getvalue()).decode("utf-8"))
+        if len(recos_imgs) > NUMBER_RECO_POSTER:
+            recos_imgs = recos_imgs[:NUMBER_RECO_POSTER]
         return jsonify({"images": recos_imgs}), 200
-    
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
+
+
+def images_are_equal(img1, img2):
+    img1 = img1.convert("RGB").resize((256, 256))
+    img2 = img2.convert("RGB").resize((256, 256))
+    diff = ImageChops.difference(img1, img2)
+    return not diff.getbbox()  # Si diff.getbbox() est None, les images sont identiques
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

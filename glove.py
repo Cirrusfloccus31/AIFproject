@@ -12,6 +12,7 @@ from settings import (
     MOVIES_METADATA_GLOVE_PATH,
     ANNOY_GLOVE_PATH,
     EMBEDDING_DIM_GLOVE,
+    NUMBER_RECO_PLOT,
 )
 
 # Télécharger les stop words
@@ -75,7 +76,7 @@ def build_annoy_index(df, embedding_dim, num_trees=10):
 
 
 def find_similar_movies_glove(
-    new_overview, df, model, annoy_index, embedding_dim, top_n=5
+    new_overview, df, model, annoy_index, embedding_dim, top_n=NUMBER_RECO_PLOT
 ):
     new_embedding = get_average_embedding(new_overview, model, embedding_dim)
     similar_indices = annoy_index.get_nns_by_vector(new_embedding, top_n)
