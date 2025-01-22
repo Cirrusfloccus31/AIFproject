@@ -9,6 +9,7 @@ from settings import (
     MOVIES_METADATA_BOW_PATH,
     ANNOY_BOW_PATH,
     EMBEDDING_DIM_BOW,
+    NUMBER_RECO_PLOT,
 )
 
 
@@ -49,7 +50,9 @@ def build_annoy_index(vect_overview_list, embedding_dim):
     annoy_index.save(ANNOY_BOW_PATH)
 
 
-def find_similar_movies_bow(new_overview, df, vectorizer, annoy_index, top_n=5):
+def find_similar_movies_bow(
+    new_overview, df, vectorizer, annoy_index, top_n=NUMBER_RECO_PLOT
+):
 
     new_embedding = vectorizer.transform([new_overview]).toarray().tolist()[0]
     similar_indices = annoy_index.get_nns_by_vector(new_embedding, top_n)
