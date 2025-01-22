@@ -19,7 +19,6 @@ def load_model():
     )
     return model
 
-
 def load_model_reco():
     mobilenet = mobilenet_v3_small(weights="MobileNet_V3_Small_Weights.IMAGENET1K_V1")
     # On récupère les features de mobilenet
@@ -29,3 +28,16 @@ def load_model_reco():
     model_reco = model_reco.eval()  # permet d'enlever le dropout
     print("load mobilenet")
     return model_reco
+
+
+def trained_model_logits(weights_model):
+    model = vgg16(weights="IMAGENET1K_V1")
+    
+    model.classifier[6] = nn.Linear(in_features=4096, out_features=10)
+    
+    # Charger les poids du modèle entraîné
+    model.load_state_dict(torch.load(weights_model))
+    
+    return model
+
+

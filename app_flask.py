@@ -38,7 +38,10 @@ preprocess = transforms.Compose(
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
+
+#Prétraitements partie 2
 transform, normalize, inv_normalize = transform_MLP_dataset()
+
 app = Flask("AIF_Project")
 
 # Load model : genre prediction
