@@ -34,3 +34,6 @@ wget --no-check-certificate "https://drive.google.com/uc?export=download&id=1aAK
 # Download dataset MLP-20M
 kaggle datasets download "ghrzarea/movielens-20m-posters-for-machine-learning" > /dev/null 2>&1
 unzip movielens-20m-posters-for-machine-learning.zip > /dev/null 2>&1
+rm -r "mlp-20m"
+rm movielens-20m-posters-for-machine-learning.zip
+rm NoposterFound_Links.csv
