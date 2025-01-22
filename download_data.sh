@@ -37,4 +37,4 @@ kaggle datasets download "ghrzarea/movielens-20m-posters-for-machine-learning" >
 unzip movielens-20m-posters-for-machine-learning.zip > /dev/null 2>&1
 rm -r "mlp-20m"
 rm movielens-20m-posters-for-machine-learning.zip
-rm NoposterFound_Links.csv
+rm NoPosterFound_Links.csv
