@@ -1,3 +1,4 @@
+#Create the data folder
 mkdir -p data
 
 # Poids de movies_net
