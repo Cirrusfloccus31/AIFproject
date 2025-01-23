@@ -1,16 +1,23 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import datasets, transforms, models
+from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from sklearn.metrics import roc_auc_score, precision_recall_curve
-import numpy as np
-import matplotlib.pyplot as plt
-from model import trained_model_logits
-from part1.dataset import get_dataloaders
-from part1.settings import PLOT_PATH
-from dataset import Movie_Dataset
+from model import trained_model_logits, load_model
+from part1.dataset import get_dataloaders, Movie_Dataset
 from detect_anomalies import mls, compute_threshold
+from settings import MOVIE_NET_PATH
+
+genres = [
+    "action",
+    "animation",
+    "comedy",
+    "documentary",
+    "drama",
+    "fantasy",
+    "horror",
+    "romance",
+    "science Fiction",
+    "thriller",
+]  # Liste des genres disponibles
 
 
 # Les mêmes prétraitements que dans dataset
@@ -32,7 +39,30 @@ def compute_logits(dataset, model, device):
             input_tensor = input_tensor.to(device) 
             logits = model(image)
             all_logits.append(logits)
-    return torch.cat(all_logits, dim=0)  
+    return torch.cat(all_logits, dim=0) 
+
+def predict(image, score, threshold, model_logits, model_genre):
+    # Prétraiter l'image
+    input_tensor = preprocess(image).unsqueeze(0)  # Ajouter une dimension batch
+    input_tensor = input_tensor.to(device) 
+    
+    model_logits.eval()
+    with torch.no_grad():
+        logits = model_logits(image)
+        s = score(logits)
+        
+    if s > threshold: 
+        return "This input is not valid. Please enter a movie poster."
+    else: 
+        model_genre.eval()
+        with torch.no_grad():
+            output = model_genre(input_tensor)
+        predicted_index = output.argmax(
+            dim=1
+        ).item()  # obtient l'index du genre avec la proba la plus haute
+        predicted_genre = genres[predicted_index]
+
+    return "predicted_genre", predicted_genre 
 
 
 if __name__ == "__main__":
@@ -41,15 +71,14 @@ if __name__ == "__main__":
 
     batch_size = 128
   
-    movie_test = Movie_Dataset("test", "MovieGenre", 0.7)
-    svhn_test = datasets.SVHN(root='./data', split='test', transform=None, download=True)
+    movie_test = Movie_Dataset("test", "MovieGenre", 0.7) #normal
+    svhn_test = datasets.SVHN(root='./data', split='test', transform=None, download=True) #anomalies
     # Extract 10_000 random images from the svhn_test set
     svhn_test, _ = torch.utils.data.random_split(svhn_test, [10_000, len(svhn_test) - 10_000])
     
     # dataloaders
     loaders = get_dataloaders(batch_size=batch_size) #MovieGenre
     test_loader = loaders["test"]
-    
     svhn_test_loader = DataLoader(svhn_test, batch_size=batch_size, shuffle=False)
     
     # Classifier entraîné de la partie 1
@@ -64,3 +93,11 @@ if __name__ == "__main__":
     scores_negatives = mls(test_logits_negatives)
     scores_positives = mls(test_logits_positives)
     threshold = compute_threshold(scores_positives, target_tpr)
+    
+    model = load_model()
+    model.load_state_dict(
+    torch.load(weights_model, weights_only=True, map_location=torch.device("cpu")))  
+    
+    normal_ex, _ = movie_test[0]
+    anomaly_ex, _ = svhn_test[0]
+    print(predict(anomaly_ex, mls, threshold, model_without_softmax, model))

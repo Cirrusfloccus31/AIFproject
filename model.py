@@ -36,7 +36,7 @@ def trained_model_logits(weights_model):
     model.classifier[6] = nn.Linear(in_features=4096, out_features=10)
     
     # Charger les poids du modèle entraîné
-    model.load_state_dict(torch.load(weights_model))
+    model.load_state_dict(torch.load(weights_model, weights_only=True, map_location=torch.device("cpu")))
     
     return model
 
