@@ -32,6 +32,7 @@ preprocess = transforms.Compose(
 
 def compute_logits(dataset, model, device):
     all_logits = []
+    model.to(device)
     with torch.no_grad():
         for i in tqdm(range(len(dataset))):
             input, _ = dataset[i]  
@@ -90,11 +91,10 @@ if __name__ == "__main__":
     model_without_softmax = trained_model_logits(weights_model)
     model_without_softmax.eval()
 
-    test_logits_negatives = compute_logits(movie_test, model_without_softmax, device)
-    test_logits_positives = compute_logits(svhn_test, model_without_softmax, device)
+    #test_logits_positives = compute_logits(svhn_test, model_without_softmax, device)
+    test_logits_positives = torch.load("test_logits_positives.pt", map_location=torch.device("cpu"), weights_only=True)
     
-    target_tpr = 0.9
-    scores_negatives = mls(test_logits_negatives)
+    target_tpr = 0.95
     scores_positives = mls(test_logits_positives)
     threshold = compute_threshold(scores_positives, target_tpr)
     
@@ -104,4 +104,4 @@ if __name__ == "__main__":
     
     normal_ex, _ = movie_test[0]
     anomaly_ex, _ = svhn_test[0]
-    print(predict(anomaly_ex, mls, threshold, model_without_softmax, model))
+    print(predict(normal_ex, mls, threshold, model_without_softmax, model))
