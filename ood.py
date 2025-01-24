@@ -5,7 +5,7 @@ from model import trained_model_logits, load_model
 from part1.dataset import get_dataloaders, Movie_Dataset
 from detect_anomalies import mls, compute_threshold
 from settings import MOVIE_NET_PATH
-
+from tqdm import tqdm
 genres = [
     "action",
     "animation",
@@ -33,22 +33,26 @@ preprocess = transforms.Compose(
 def compute_logits(dataset, model, device):
     all_logits = []
     with torch.no_grad():
-        for i in range(len(dataset)):
-            image, _ = dataset[i]  
-            input_tensor = preprocess(image).unsqueeze(0)
-            input_tensor = input_tensor.to(device) 
-            logits = model(image)
+        for i in tqdm(range(len(dataset))):
+            input, _ = dataset[i]  
+            if type(input)!=torch.Tensor: 
+                input = preprocess(input)
+            input = input.unsqueeze(0)
+            input = input.to(device) 
+            logits = model(input)
             all_logits.append(logits)
     return torch.cat(all_logits, dim=0) 
 
-def predict(image, score, threshold, model_logits, model_genre):
-    # Prétraiter l'image
-    input_tensor = preprocess(image).unsqueeze(0)  # Ajouter une dimension batch
-    input_tensor = input_tensor.to(device) 
+def predict(input, score, threshold, model_logits, model_genre):
+    # Prétraiter l'input
+    if type(input)!=torch.Tensor: 
+        input = preprocess(input)
+    input = input.unsqueeze(0)# Ajouter une dimension batch
+    input = input.to(device) 
     
     model_logits.eval()
     with torch.no_grad():
-        logits = model_logits(image)
+        logits = model_logits(input)
         s = score(logits)
         
     if s > threshold: 
@@ -56,7 +60,7 @@ def predict(image, score, threshold, model_logits, model_genre):
     else: 
         model_genre.eval()
         with torch.no_grad():
-            output = model_genre(input_tensor)
+            output = model_genre(input)
         predicted_index = output.argmax(
             dim=1
         ).item()  # obtient l'index du genre avec la proba la plus haute

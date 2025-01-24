@@ -33,10 +33,13 @@ def load_model_reco():
 def trained_model_logits(weights_model):
     model = vgg16(weights="IMAGENET1K_V1")
     
-    model.classifier[6] = nn.Linear(in_features=4096, out_features=10)
+    model.classifier[6] = nn.Sequential(
+        nn.Linear(in_features=4096, out_features=10)  # Suppression du Softmax
+    )
     
     # Charger les poids du modèle entraîné
     model.load_state_dict(torch.load(weights_model, weights_only=True, map_location=torch.device("cpu")))
+    
     
     return model
 
