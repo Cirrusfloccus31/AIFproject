@@ -6,6 +6,7 @@ from part1.dataset import get_dataloaders, Movie_Dataset
 from detect_anomalies import mls, compute_threshold
 from settings import MOVIE_NET_PATH
 from tqdm import tqdm
+import matplotlib.pyplot as plt 
 genres = [
     "action",
     "animation",
@@ -51,6 +52,7 @@ def predict(input, score, threshold, model_logits, model_genre):
     input = input.unsqueeze(0)# Ajouter une dimension batch
     input = input.to(device) 
     
+    model_logits.to(device)
     model_logits.eval()
     with torch.no_grad():
         logits = model_logits(input)
@@ -59,6 +61,7 @@ def predict(input, score, threshold, model_logits, model_genre):
     if s > threshold: 
         return "This input is not valid. Please enter a movie poster."
     else: 
+        model_genre.to(device)
         model_genre.eval()
         with torch.no_grad():
             output = model_genre(input)
@@ -77,25 +80,26 @@ if __name__ == "__main__":
     batch_size = 128
   
     movie_test = Movie_Dataset("test", "MovieGenre", 0.7) #normal
-    svhn_test = datasets.SVHN(root='./data', split='test', transform=None, download=True) #anomalies
-    # Extract 10_000 random images from the svhn_test set
-    svhn_test, _ = torch.utils.data.random_split(svhn_test, [10_000, len(svhn_test) - 10_000])
+    cifar_test = datasets.CIFAR10(root='./data', train=False, transform=None, download=True) #anomalies
+    #cifar_test, _ = torch.utils.data.random_split(cifar_test, [807, len(cifar_test) - 807])
     
     # dataloaders
     loaders = get_dataloaders(batch_size=batch_size) #MovieGenre
     test_loader = loaders["test"]
-    svhn_test_loader = DataLoader(svhn_test, batch_size=batch_size, shuffle=False)
+    cifar_test_loader = DataLoader(cifar_test, batch_size=batch_size, shuffle=False)
     
     # Classifier entraîné de la partie 1
     weights_model = "movie_net.pth"
     model_without_softmax = trained_model_logits(weights_model)
     model_without_softmax.eval()
 
-    #test_logits_positives = compute_logits(svhn_test, model_without_softmax, device)
+    #test_logits_positives = compute_logits(cifar_test, model_without_softmax, device)
     test_logits_positives = torch.load("test_logits_positives.pt", map_location=torch.device("cpu"), weights_only=True)
+    test_logits_negatives = torch.load("test_logits_negatives.pt", map_location=torch.device("cpu"), weights_only=True)
     
-    target_tpr = 0.95
+    target_tpr = 0.9
     scores_positives = mls(test_logits_positives)
+    scores_negatives = mls(test_logits_negatives)
     threshold = compute_threshold(scores_positives, target_tpr)
     
     model = load_model()
@@ -103,5 +107,12 @@ if __name__ == "__main__":
     torch.load(weights_model, weights_only=True, map_location=torch.device("cpu")))  
     
     normal_ex, _ = movie_test[0]
-    anomaly_ex, _ = svhn_test[0]
+    anomaly_ex, _ = cifar_test[0]
+    print(predict(anomaly_ex, mls, threshold, model_without_softmax, model))
     print(predict(normal_ex, mls, threshold, model_without_softmax, model))
+    
+    plt.hist(scores_negatives, bins=50, alpha=0.5, label="Posters")
+    plt.hist(scores_positives, bins=50, alpha=0.5, label="CIFAR_10")
+    plt.axvline(threshold, color="red", linestyle="--", label="Threshold")
+    plt.legend()
+    plt.show()
