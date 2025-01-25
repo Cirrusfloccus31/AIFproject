@@ -7,12 +7,13 @@ from flask import Flask, request, jsonify
 from PIL import Image, ImageChops
 from io import BytesIO
 from annoy import AnnoyIndex
-from model import load_model, load_model_reco
+from model import load_model, load_model_reco, trained_model_logits
 from glove import load_glove_model, find_similar_movies_glove
 from bow import find_similar_movies_bow
 from extract_features import extract_embedding
 from recommendation import search
 from dataset import transform_MLP_dataset
+from detect_anomalies import mls, compute_threshold
 from settings import (
     MOVIE_NET_PATH,
     TFIDF_VECTORIZER_PATH,
@@ -49,7 +50,7 @@ model = load_model()
 model.load_state_dict(
     torch.load(MOVIE_NET_PATH, weights_only=True, map_location=torch.device("cpu"))
 )
-
+model_logits = trained_model_logits(MOVIE_NET_PATH)
 # Load model : Recommendation
 model_reco = load_model_reco()
 
@@ -85,30 +86,45 @@ annoy_index_bow = AnnoyIndex(EMBEDDING_DIM_BOW, "angular")
 annoy_index_bow.load(ANNOY_BOW_PATH)
 movies_metadata_bow = pd.read_csv(MOVIES_METADATA_BOW_PATH)
 
+#Load logits for anomaly detection
+test_logits_positives = torch.load("test_logits_positives.pt")
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
     image = request.data
+    score = mls
+    target_tpr = 0.9
+    scores_positives = score(test_logits_positives)
+    threshold = compute_threshold(scores_positives, target_tpr)
 
     try:
         img_pil = Image.open(BytesIO(image))
         # Prétraiter l'image
         input_tensor = preprocess(img_pil).unsqueeze(0)  # Ajouter une dimension batch
-
-        # Passer l'image dans le modèle
-        model.eval()
+        
+        model_logits.eval()
         with torch.no_grad():
-            output = model(input_tensor)
+            logits = model_logits(input_tensor)
+            s = score(logits)
+            
+        if s > threshold: 
+            return "This input is not valid. Please enter a movie poster."
+        else: 
+            # Passer l'image dans le modèle
+            model.eval()
+            with torch.no_grad():
+                output = model(input_tensor)
 
-        predicted_index = output.argmax(
-            dim=1
-        ).item()  # obtient l'index du genre avec la proba la plus haute
-        predicted_genre = genres[predicted_index]
+            predicted_index = output.argmax(
+                dim=1
+            ).item()  # obtient l'index du genre avec la proba la plus haute
+            predicted_genre = genres[predicted_index]
         return jsonify({"predicted_genre": predicted_genre}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 
 @app.route("/reco_overview", methods=["POST"])
 def reco_overview():
