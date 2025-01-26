@@ -38,3 +38,6 @@ unzip movielens-20m-posters-for-machine-learning.zip > /dev/null 2>&1
 rm -r "mlp-20m"
 rm movielens-20m-posters-for-machine-learning.zip
 rm NoPosterFound_Links.csv
+
+#Dowload logits for part 4
+wget --no-check-certificate "https://drive.google.com/uc?export=download&id=1bgGccJgfI-RdVysHNdPyulecke_YwFfZ" -O "data/test_logits_positives.pt" > /dev/null 2>&1

@@ -28,6 +28,7 @@ from settings import (
     ANNOY_POSTER_PATH,
     IMAGE_CSV_FILE_PATH,
     NUMBER_RECO_POSTER,
+    LOGITS_PATH,
 )
 
 # Les mêmes prétraitements que dans dataset
@@ -40,7 +41,7 @@ preprocess = transforms.Compose(
     ]
 )
 
-#Prétraitements partie 2
+# Prétraitements partie 2
 transform, normalize, inv_normalize = transform_MLP_dataset()
 
 app = Flask("AIF_Project")
@@ -86,8 +87,10 @@ annoy_index_bow = AnnoyIndex(EMBEDDING_DIM_BOW, "angular")
 annoy_index_bow.load(ANNOY_BOW_PATH)
 movies_metadata_bow = pd.read_csv(MOVIES_METADATA_BOW_PATH)
 
-#Load logits for anomaly detection
-test_logits_positives = torch.load("test_logits_positives.pt")
+# Load logits for anomaly detection
+test_logits_positives = torch.load(
+    LOGITS_PATH, map_location=torch.device("cpu"), weights_only=True
+)
 
 
 @app.route("/predict", methods=["POST"])
@@ -102,15 +105,22 @@ def predict():
         img_pil = Image.open(BytesIO(image))
         # Prétraiter l'image
         input_tensor = preprocess(img_pil).unsqueeze(0)  # Ajouter une dimension batch
-        
+
         model_logits.eval()
         with torch.no_grad():
             logits = model_logits(input_tensor)
             s = score(logits)
-            
-        if s > threshold: 
-            return "This input is not valid. Please enter a movie poster."
-        else: 
+
+        if s > threshold:
+            return (
+                jsonify(
+                    {
+                        "predicted_genre": "This input is not valid. Please enter a movie poster."
+                    }
+                ),
+                200,
+            )
+        else:
             # Passer l'image dans le modèle
             model.eval()
             with torch.no_grad():
@@ -124,7 +134,7 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 
 @app.route("/reco_overview", methods=["POST"])
 def reco_overview():
