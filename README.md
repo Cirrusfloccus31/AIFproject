@@ -1,6 +1,6 @@
 # AIFproject
 
-Ce projet utilise Docker Compose pour gérer les conteneurs. Les étapes pour l'exécuter sont explicites plus bas.
+Ce projet utilise Docker Compose pour gérer les conteneurs. Les étapes pour l'exécuter sont explicitées plus bas.
 
 ## Prérequis
 
@@ -15,13 +15,13 @@ Exécutez la commande suivante :
 
 2. **Démarrez les conteneurs** 
 Lancez la commande suivante 
-    '''sh 
+    ```sh 
     docker-compose up 
 
 Si des problèmes de permission apparaissent utilisez **sudo**. 
 
 3. **Arrêtez et supprimer les conteneurs**
-    '''sh
+    ```sh
     docker-compose down 
 
     
