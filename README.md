@@ -10,11 +10,11 @@ Avant de commencer, assurez-vous que **Docker** et **Docker Compose** sont insta
 
 Puis ouvrer un terminal et cloner le projet :
     ```sh
-    git clone https://github.com/Cirrusfloccus31/AIFproject.git```
+    git clone https://github.com/Cirrusfloccus31/AIFproject.git 
 
 Enfin placer vous dans le répertoire du projet :
     ```sh
-    cd AIFproject```
+    cd AIFproject 
 
 ## Installation et exécution
 
