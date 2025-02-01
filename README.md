@@ -10,22 +10,21 @@ Avant de commencer, assurez-vous que **Docker** et **Docker Compose** sont insta
 
 ## Installation et exécution
 
+Ouvrez un terminal et exécutez les commandes suivantes :
+
 1. **Récupération du projet**
-Ouvrez un terminal et cloner le projet :
     ```sh
     git clone https://github.com/Cirrusfloccus31/AIFproject.git 
 
-2. **Se placer dans le répertoire du projet**
+3. **Se placer dans le répertoire du projet**
     ```sh
     cd AIFproject 
 
-3. **Construire les images Docker**  
-Exécutez la commande suivante :  
+4. **Construire les images Docker**  
     ```sh
     docker-compose build
 
-4. **Démarrez les conteneurs** 
-Lancez la commande suivante 
+5. **Démarrez les conteneurs** 
     ```sh 
     docker-compose up 
 
@@ -37,8 +36,7 @@ Aller à l'adresse [localhost:7860](http://localhost:7860/), vous arrivez alors 
 
 Vous pouvez utiliser l' image `a_movie_poster.jpg` contenue dans le dossier images pour tester les parties 1 et 2. L'image `not_a_movie_poster.jpg` est faite pour tester la partie 4 (même onglet que la partie 1). Pour tester la partie 3 vous pouvez utiliser le scénario suivant (celui de Toy Story) : Led by Woody, Andy's toys live happily in his room until Andy's birthday brings Buzz Lightyear onto the scene. Afraid of losing his place in Andy's heart, Woody plots against Buzz. But when circumstances separate Buzz and Woody from their owner, the duo eventually learns to put aside their differences. Les inférences pour la partie 1 (premier onglet) peuvent être un peu longues.
 
-6. **Arrêtez et supprimer les conteneurs**
-Quand vous avez fini d'utiliser l'application, éxecutez :
+6. **Arrêter et supprimer les conteneurs quand vous avez fini d'utiliser l'application**
     ```sh
     docker-compose down 
 
