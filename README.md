@@ -1,10 +1,16 @@
 # AIFproject
 
+Ce dépôt est dédié au projet du cours AIF à l'INSA Toulouse 2024-2025.
+
 Ce projet utilise Docker Compose pour gérer les conteneurs. Les étapes pour l'exécuter sont explicitées plus bas.
 
 ## Prérequis
 
 Avant de commencer, assurez-vous que **Docker** et **Docker Compose** sont installés et que Docker est en cours d'exécution sur votre machine.
+
+Puis ouvrer un terminal et cloner le projet :
+    ```sh
+    git clone
 
 ## Installation et exécution
 
